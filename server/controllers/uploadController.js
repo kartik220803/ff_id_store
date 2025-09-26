@@ -17,9 +17,9 @@ exports.uploadImages = async (req, res) => {
     const uploadPromises = req.files.map(file => {
       // Create a base64 string from the file buffer
       const fileString = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
-      
+
       // Upload to Cloudinary
-      return uploadImage(fileString, 'second-hand-mobiles/products');
+      return uploadImage(fileString, 'ff-id-store/accounts');
     });
 
     // Wait for all uploads to complete
@@ -62,9 +62,9 @@ exports.uploadVideos = async (req, res) => {
     const uploadPromises = req.files.map(file => {
       // Create a base64 string from the file buffer
       const fileString = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
-      
+
       // Upload to Cloudinary with resource_type as video
-      return uploadImage(fileString, 'second-hand-mobiles/videos');
+      return uploadImage(fileString, 'ff-id-store/videos');
     });
 
     // Wait for all uploads to complete

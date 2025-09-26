@@ -1,9 +1,12 @@
-import { api, authAPI, productAPI, uploadAPI, userAPI } from './api';
+import { api, authAPI, productAPI, uploadAPI, userAPI, offerAPI, orderAPI, notificationAPI } from './api';
 
 export {
   api,
   authAPI,
   productAPI,
   uploadAPI,
-  userAPI
+  userAPI,
+  offerAPI,
+  orderAPI,
+  notificationAPI
 };

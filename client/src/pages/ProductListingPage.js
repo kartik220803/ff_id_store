@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { productAPI } from '../services';
 import ProductCard from '../components/products/ProductCard';
 import Spinner from '../components/layout/Spinner';
 
@@ -11,8 +11,11 @@ const ProductListingPage = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [filters, setFilters] = useState({
-    brand: '',
-    condition: '',
+    status: '',
+    minLevel: '',
+    maxLevel: '',
+    minDiamonds: '',
+    maxDiamonds: '',
     minPrice: '',
     maxPrice: '',
     sort: '-createdAt',
@@ -39,8 +42,11 @@ const ProductListingPage = () => {
     const queryParams = getQueryParams();
 
     setFilters({
-      brand: queryParams.brand || '',
-      condition: queryParams.condition || '',
+      status: queryParams.status || '',
+      minLevel: queryParams.minLevel || '',
+      maxLevel: queryParams.maxLevel || '',
+      minDiamonds: queryParams.minDiamonds || '',
+      maxDiamonds: queryParams.maxDiamonds || '',
       minPrice: queryParams.minPrice || '',
       maxPrice: queryParams.maxPrice || '',
       sort: queryParams.sort || '-createdAt',
@@ -60,11 +66,14 @@ const ProductListingPage = () => {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        
+
         // Build query string from filters
         const query = new URLSearchParams();
-        if (filters.brand) query.append('brand', filters.brand);
-        if (filters.condition) query.append('condition', filters.condition);
+        if (filters.status) query.append('status', filters.status);
+        if (filters.minLevel) query.append('minLevel', filters.minLevel);
+        if (filters.maxLevel) query.append('maxLevel', filters.maxLevel);
+        if (filters.minDiamonds) query.append('minDiamonds', filters.minDiamonds);
+        if (filters.maxDiamonds) query.append('maxDiamonds', filters.maxDiamonds);
         if (filters.minPrice) query.append('minPrice', filters.minPrice);
         if (filters.maxPrice) query.append('maxPrice', filters.maxPrice);
         if (filters.sort) query.append('sort', filters.sort);
@@ -72,9 +81,9 @@ const ProductListingPage = () => {
         if (filters.featured) query.append('featured', filters.featured);
         query.append('page', page);
         query.append('limit', limit);
-        
-        const response = await axios.get(`/api/products?${query.toString()}`);
-        
+
+        const response = await productAPI.getAllProducts(Object.fromEntries(query));
+
         setProducts(response.data.data);
         setTotalPages(Math.ceil(response.data.total / limit));
         setLoading(false);
@@ -100,17 +109,20 @@ const ProductListingPage = () => {
   // Handle search input
   const handleSearch = (e) => {
     e.preventDefault();
-    
+
     // Build query params
     const queryParams = new URLSearchParams();
-    if (filters.brand) queryParams.append('brand', filters.brand);
-    if (filters.condition) queryParams.append('condition', filters.condition);
+    if (filters.status) queryParams.append('status', filters.status);
+    if (filters.minLevel) queryParams.append('minLevel', filters.minLevel);
+    if (filters.maxLevel) queryParams.append('maxLevel', filters.maxLevel);
+    if (filters.minDiamonds) queryParams.append('minDiamonds', filters.minDiamonds);
+    if (filters.maxDiamonds) queryParams.append('maxDiamonds', filters.maxDiamonds);
     if (filters.minPrice) queryParams.append('minPrice', filters.minPrice);
     if (filters.maxPrice) queryParams.append('maxPrice', filters.maxPrice);
     if (filters.sort) queryParams.append('sort', filters.sort);
     if (filters.search) queryParams.append('search', filters.search);
     if (filters.featured) queryParams.append('featured', filters.featured);
-    
+
     // Navigate with updated query params
     navigate(`/products?${queryParams.toString()}`);
   };
@@ -118,10 +130,10 @@ const ProductListingPage = () => {
   // Handle page change
   const handlePageChange = (newPage) => {
     if (newPage < 1 || newPage > totalPages) return;
-    
+
     const queryParams = getQueryParams();
     queryParams.page = newPage;
-    
+
     navigate(`/products?${new URLSearchParams(queryParams).toString()}`);
   };
 
@@ -133,8 +145,8 @@ const ProductListingPage = () => {
     <section className="products-page">
       <div className="container">
         <div className="section-title">
-          <h1>Mobile Phones</h1>
-          <p>Find the perfect second-hand smartphone at the best price</p>
+          <h1>Free Fire Accounts</h1>
+          <p>Find the perfect Free Fire account at the best price</p>
         </div>
 
         <div className="products-layout">
@@ -150,52 +162,23 @@ const ProductListingPage = () => {
                     value={filters.search || ''}
                     onChange={handleFilterChange}
                     className="form-control"
-                    placeholder="Search phones..."
+                    placeholder="Search by UID, Level, Price, etc."
                   />
                 </div>
               </div>
 
               <div className="filter-section">
-                <h3>Brand</h3>
+                <h3>Availability</h3>
                 <div className="form-group">
                   <select
-                    name="brand"
-                    value={filters.brand}
+                    name="status"
+                    value={filters.status}
                     onChange={handleFilterChange}
                     className="form-control"
                   >
-                    <option value="">All Brands</option>
-                    <option value="Apple">Apple</option>
-                    <option value="Samsung">Samsung</option>
-                    <option value="Google">Google</option>
-                    <option value="OnePlus">OnePlus</option>
-                    <option value="Xiaomi">Xiaomi</option>
-                    <option value="Oppo">Oppo</option>
-                    <option value="Vivo">Vivo</option>
-                    <option value="Realme">Realme</option>
-                    <option value="Motorola">Motorola</option>
-                    <option value="Nokia">Nokia</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="filter-section">
-                <h3>Condition</h3>
-                <div className="form-group">
-                  <select
-                    name="condition"
-                    value={filters.condition}
-                    onChange={handleFilterChange}
-                    className="form-control"
-                  >
-                    <option value="">All Conditions</option>
-                    <option value="Brand New">Brand New</option>
-                    <option value="Like New">Like New</option>
-                    <option value="Very Good">Very Good</option>
-                    <option value="Good">Good</option>
-                    <option value="Acceptable">Acceptable</option>
-                    <option value="For Parts">For Parts</option>
+                    <option value="">All Accounts</option>
+                    <option value="available">Available</option>
+                    <option value="sold">Sold</option>
                   </select>
                 </div>
               </div>
@@ -209,7 +192,7 @@ const ProductListingPage = () => {
                     value={filters.minPrice}
                     onChange={handleFilterChange}
                     className="form-control"
-                    placeholder="Min"
+                    placeholder="Min ₹"
                     min="0"
                   />
                   <span>to</span>
@@ -217,6 +200,58 @@ const ProductListingPage = () => {
                     type="number"
                     name="maxPrice"
                     value={filters.maxPrice}
+                    onChange={handleFilterChange}
+                    className="form-control"
+                    placeholder="Max ₹"
+                    min="0"
+                  />
+                </div>
+              </div>
+
+              <div className="filter-section">
+                <h3>Level Range</h3>
+                <div className="form-group price-range">
+                  <input
+                    type="number"
+                    name="minLevel"
+                    value={filters.minLevel}
+                    onChange={handleFilterChange}
+                    className="form-control"
+                    placeholder="Min Level"
+                    min="1"
+                    max="100"
+                  />
+                  <span>to</span>
+                  <input
+                    type="number"
+                    name="maxLevel"
+                    value={filters.maxLevel}
+                    onChange={handleFilterChange}
+                    className="form-control"
+                    placeholder="Max Level"
+                    min="1"
+                    max="100"
+                  />
+                </div>
+              </div>
+
+              <div className="filter-section">
+                <h3>Diamonds Range</h3>
+                <div className="form-group price-range">
+                  <input
+                    type="number"
+                    name="minDiamonds"
+                    value={filters.minDiamonds}
+                    onChange={handleFilterChange}
+                    className="form-control"
+                    placeholder="Min"
+                    min="0"
+                  />
+                  <span>to</span>
+                  <input
+                    type="number"
+                    name="maxDiamonds"
+                    value={filters.maxDiamonds}
                     onChange={handleFilterChange}
                     className="form-control"
                     placeholder="Max"
@@ -238,6 +273,10 @@ const ProductListingPage = () => {
                     <option value="createdAt">Oldest First</option>
                     <option value="price">Price Low to High</option>
                     <option value="-price">Price High to Low</option>
+                    <option value="-level">Level High to Low</option>
+                    <option value="level">Level Low to High</option>
+                    <option value="-diamonds">Diamonds High to Low</option>
+                    <option value="diamonds">Diamonds Low to High</option>
                   </select>
                 </div>
               </div>
@@ -275,13 +314,13 @@ const ProductListingPage = () => {
                     >
                       Previous
                     </button>
-                    
+
                     <div className="page-numbers">
                       <span>
                         Page {page} of {totalPages}
                       </span>
                     </div>
-                    
+
                     <button
                       onClick={() => handlePageChange(page + 1)}
                       disabled={page === totalPages}

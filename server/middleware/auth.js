@@ -25,6 +25,12 @@ exports.protect = async (req, res, next) => {
     // Get user from the token
     req.user = await User.findById(decoded.id);
 
+    console.log('Auth middleware - User loaded:', {
+      id: req.user?._id,
+      name: req.user?.name,
+      email: req.user?.email
+    });
+
     next();
   } catch (error) {
     console.error(error);
@@ -46,4 +52,33 @@ exports.authorize = (...roles) => {
     }
     next();
   };
+};
+
+// Optional auth - doesn't require authentication but adds user if available
+exports.optionalAuth = async (req, res, next) => {
+  let token;
+
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    // Get token from header
+    token = req.headers.authorization.split(' ')[1];
+  }
+
+  // If no token, continue without user
+  if (!token) {
+    return next();
+  }
+
+  try {
+    // Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // Get user from the token
+    req.user = await User.findById(decoded.id);
+
+    next();
+  } catch (error) {
+    // If token is invalid, continue without user
+    console.log('Optional auth - invalid token, continuing without user');
+    next();
+  }
 };

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { toast } from 'react-toastify';
+import { productAPI, uploadAPI } from '../services';
 import Spinner from '../components/layout/Spinner';
 
 const AddProductPage = () => {
@@ -10,16 +10,14 @@ const AddProductPage = () => {
     title: '',
     description: '',
     price: '',
-    brand: '',
-    model: '',
-    condition: '',
-    age: '',
-    storage: '',
-    color: '',
-    warranty: 'No warranty',
-    location: '',
+    level: '',
+    diamonds: '',
+    gold: '',
+    loginMethod: '',
+    twoStepVerification: '',
+    uid: '',
   });
-  
+
   const [images, setImages] = useState([]);
   const [videos, setVideos] = useState([]);
   const [uploading, setUploading] = useState(false);
@@ -29,153 +27,144 @@ const AddProductPage = () => {
     title,
     description,
     price,
-    brand,
-    model,
-    condition,
-    age,
-    storage,
-    color,
-    warranty,
-    location,
+    level,
+    diamonds,
+    gold,
+    loginMethod,
+    twoStepVerification,
+    uid,
   } = formData;
 
   const handleChange = e => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
-  
+
   const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files);
-    
+
     // Validate file types and sizes
     const validImageTypes = ['image/jpeg', 'image/png', 'image/jpg'];
     const maxSize = 5 * 1024 * 1024; // 5MB
-    
+
     const validFiles = files.filter(file => (
       validImageTypes.includes(file.type) && file.size <= maxSize
     ));
-    
+
     if (validFiles.length !== files.length) {
       toast.error('Some files were not added. Images must be JPG, JPEG or PNG and less than 5MB.');
       // Continue with valid files only
     }
-    
-    if (validFiles.length === 0) return;
-    
-    try {
+
+    if (validFiles.length === 0) return; try {
       setUploading(true);
-      
+
       // Create form data for upload
       const formData = new FormData();
       validFiles.forEach(file => {
-        formData.append('files', file);
+        formData.append('images', file);
       });
-      
+
       // Upload to server
-      const response = await axios.post('/api/upload/images', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-      
+      const response = await uploadAPI.uploadImages(formData);
+
       // Add uploaded images to state
-      setImages([...images, ...response.data]);
+      setImages([...images, ...response.data.data]);
       toast.success('Images uploaded successfully');
     } catch (err) {
       console.error('Error uploading images:', err);
-      toast.error('Failed to upload images');
+      console.error('Error response:', err.response?.data);
+      toast.error(err.response?.data?.message || 'Failed to upload images');
     } finally {
       setUploading(false);
     }
   };
-  
+
   const handleVideoUpload = async (e) => {
     const files = Array.from(e.target.files);
-    
+
     // Validate file types and sizes
     const validVideoTypes = ['video/mp4', 'video/quicktime', 'video/x-msvideo'];
     const maxSize = 50 * 1024 * 1024; // 50MB
-    
+
     const validFiles = files.filter(file => (
       validVideoTypes.includes(file.type) && file.size <= maxSize
     ));
-    
+
     if (validFiles.length !== files.length) {
       toast.error('Some files were not added. Videos must be MP4, MOV or AVI and less than 50MB.');
       // Continue with valid files only
     }
-    
-    if (validFiles.length === 0) return;
-    
-    try {
+
+    if (validFiles.length === 0) return; try {
       setUploading(true);
-      
+
       // Create form data for upload
       const formData = new FormData();
       validFiles.forEach(file => {
-        formData.append('files', file);
+        formData.append('videos', file);
       });
-      
+
       // Upload to server
-      const response = await axios.post('/api/upload/videos', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-      
+      const response = await uploadAPI.uploadVideos(formData);
+
       // Add uploaded videos to state
-      setVideos([...videos, ...response.data]);
+      setVideos([...videos, ...response.data.data]);
       toast.success('Videos uploaded successfully');
     } catch (err) {
       console.error('Error uploading videos:', err);
-      toast.error('Failed to upload videos');
+      console.error('Error response:', err.response?.data);
+      toast.error(err.response?.data?.message || 'Failed to upload videos');
     } finally {
       setUploading(false);
     }
   };
-  
+
   const removeImage = (index) => {
     const updatedImages = [...images];
     updatedImages.splice(index, 1);
     setImages(updatedImages);
   };
-  
+
   const removeVideo = (index) => {
     const updatedVideos = [...videos];
     updatedVideos.splice(index, 1);
     setVideos(updatedVideos);
   };
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Validation
-    if (!title || !description || !price || !brand || !model || !condition || !age || !storage || !color || !location) {
+    if (!title || !description || !price || !level || !diamonds || !gold || !twoStepVerification || !loginMethod || !uid) {
       toast.error('Please fill in all required fields');
       return;
     }
-    
+
     if (images.length === 0) {
       toast.error('Please upload at least one image');
       return;
     }
-    
+
     try {
       setLoading(true);
-      
+
       const productData = {
         ...formData,
         price: parseFloat(price),
+        level: parseInt(level),
+        diamonds: parseInt(diamonds),
+        gold: parseInt(gold),
         images,
         videos
       };
-      
-      await axios.post('/api/products', productData);
-      
-      toast.success('Product added successfully');
+
+      await productAPI.createProduct(productData);
+
+      toast.success('Free Fire account listed successfully');
       navigate('/products');
     } catch (err) {
       console.error('Error adding product:', err);
-      toast.error(err.response?.data?.message || 'Failed to add product');
+      toast.error(err.response?.data?.message || 'Failed to list account');
     } finally {
       setLoading(false);
     }
@@ -189,8 +178,8 @@ const AddProductPage = () => {
     <section className="add-product-page">
       <div className="container">
         <div className="section-title">
-          <h1>Sell Your Phone</h1>
-          <p>Fill in the details and upload images to list your phone</p>
+          <h1>Sell Your Free Fire Account</h1>
+          <p>Fill in the details and upload screenshots to list your account</p>
         </div>
 
         <form className="product-form" onSubmit={handleSubmit}>
@@ -198,7 +187,7 @@ const AddProductPage = () => {
             {/* Basic Information */}
             <div className="form-section">
               <h3>Basic Information</h3>
-              
+
               <div className="form-group">
                 <label htmlFor="title">Title*</label>
                 <input
@@ -208,13 +197,13 @@ const AddProductPage = () => {
                   value={title}
                   onChange={handleChange}
                   className="form-control"
-                  placeholder="e.g., Samsung Galaxy S21 Ultra 5G"
+                  placeholder="e.g., 75 Level Account"
                   maxLength="100"
                   required
                 />
-                <small className="form-text">Include key details like brand, model, and storage</small>
+                <small className="form-text">Include key details like level, rank, and special items</small>
               </div>
-              
+
               <div className="form-group">
                 <label htmlFor="description">Description*</label>
                 <textarea
@@ -223,14 +212,14 @@ const AddProductPage = () => {
                   value={description}
                   onChange={handleChange}
                   className="form-control"
-                  placeholder="Describe your phone's condition, any accessories included, reason for selling, etc."
+                  placeholder="5 years old, 300 diamonds, 75 level, 5 evo guns"
                   rows="6"
                   maxLength="1000"
                   required
                 />
                 <small className="form-text">Maximum 1000 characters</small>
               </div>
-              
+
               <div className="form-group">
                 <label htmlFor="price">Price (₹)*</label>
                 <input
@@ -245,155 +234,122 @@ const AddProductPage = () => {
                   required
                 />
               </div>
-              
+            </div>
+
+            {/* Account Details */}
+            <div className="form-section">
+              <h3>Account Details</h3>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="level">Level*</label>
+                  <input
+                    type="number"
+                    id="level"
+                    name="level"
+                    value={level}
+                    onChange={handleChange}
+                    className="form-control"
+                    placeholder="e.g., 75"
+                    min="1"
+                    max="100"
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="diamonds">Diamonds*</label>
+                  <input
+                    type="number"
+                    id="diamonds"
+                    name="diamonds"
+                    value={diamonds}
+                    onChange={handleChange}
+                    className="form-control"
+                    placeholder="e.g., 5000"
+                    min="0"
+                    required
+                  />
+                </div>
+              </div>
+
               <div className="form-group">
-                <label htmlFor="location">Location*</label>
+                <label htmlFor="gold">Gold*</label>
                 <input
-                  type="text"
-                  id="location"
-                  name="location"
-                  value={location}
+                  type="number"
+                  id="gold"
+                  name="gold"
+                  value={gold}
                   onChange={handleChange}
                   className="form-control"
-                  placeholder="City, State"
+                  placeholder="e.g., 150000"
+                  min="0"
                   required
                 />
               </div>
-            </div>
-            
-            {/* Phone Specifications */}
-            <div className="form-section">
-              <h3>Phone Specifications</h3>
-              
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="brand">Brand*</label>
-                  <select
-                    id="brand"
-                    name="brand"
-                    value={brand}
-                    onChange={handleChange}
-                    className="form-control"
-                    required
-                  >
-                    <option value="">Select Brand</option>
-                    <option value="Apple">Apple</option>
-                    <option value="Samsung">Samsung</option>
-                    <option value="Google">Google</option>
-                    <option value="OnePlus">OnePlus</option>
-                    <option value="Xiaomi">Xiaomi</option>
-                    <option value="Oppo">Oppo</option>
-                    <option value="Vivo">Vivo</option>
-                    <option value="Realme">Realme</option>
-                    <option value="Motorola">Motorola</option>
-                    <option value="Nokia">Nokia</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
-                
-                <div className="form-group">
-                  <label htmlFor="model">Model*</label>
-                  <input
-                    type="text"
-                    id="model"
-                    name="model"
-                    value={model}
-                    onChange={handleChange}
-                    className="form-control"
-                    placeholder="e.g., Galaxy S21, iPhone 13"
-                    required
-                  />
-                </div>
-              </div>
-              
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="condition">Condition*</label>
-                  <select
-                    id="condition"
-                    name="condition"
-                    value={condition}
-                    onChange={handleChange}
-                    className="form-control"
-                    required
-                  >
-                    <option value="">Select Condition</option>
-                    <option value="Brand New">Brand New</option>
-                    <option value="Like New">Like New</option>
-                    <option value="Very Good">Very Good</option>
-                    <option value="Good">Good</option>
-                    <option value="Acceptable">Acceptable</option>
-                    <option value="For Parts">For Parts</option>
-                  </select>
-                </div>
-                
-                <div className="form-group">
-                  <label htmlFor="age">Age*</label>
-                  <input
-                    type="text"
-                    id="age"
-                    name="age"
-                    value={age}
-                    onChange={handleChange}
-                    className="form-control"
-                    placeholder="e.g., 6 months, 2 years"
-                    required
-                  />
-                </div>
-              </div>
-              
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="storage">Storage*</label>
-                  <input
-                    type="text"
-                    id="storage"
-                    name="storage"
-                    value={storage}
-                    onChange={handleChange}
-                    className="form-control"
-                    placeholder="e.g., 64GB, 128GB"
-                    required
-                  />
-                </div>
-                
-                <div className="form-group">
-                  <label htmlFor="color">Color*</label>
-                  <input
-                    type="text"
-                    id="color"
-                    name="color"
-                    value={color}
-                    onChange={handleChange}
-                    className="form-control"
-                    placeholder="e.g., Black, Midnight Blue"
-                    required
-                  />
-                </div>
-              </div>
-              
+
               <div className="form-group">
-                <label htmlFor="warranty">Warranty</label>
-                <input
-                  type="text"
-                  id="warranty"
-                  name="warranty"
-                  value={warranty}
+                <label htmlFor="loginMethod">Login Method*</label>
+                <select
+                  id="loginMethod"
+                  name="loginMethod"
+                  value={loginMethod}
                   onChange={handleChange}
                   className="form-control"
-                  placeholder="e.g., 3 months remaining, No warranty"
+                  required
+                >
+                  <option value="">Select Login Method</option>
+                  <option value="Facebook">🌐 Facebook</option>
+                  <option value="Google">🔍 Google</option>
+                  <option value="X/Twitter">✖️ X/Twitter</option>
+                  <option value="Guest">👤 Guest</option>
+                </select>
+                <small className="form-text">Select the primary login method for this account</small>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="twoStepVerification">2-Step Verification*</label>
+                <select
+                  id="twoStepVerification"
+                  name="twoStepVerification"
+                  value={twoStepVerification}
+                  onChange={handleChange}
+                  className="form-control"
+                  required
+                >
+                  <option value="">Select Status</option>
+                  <option value="Enabled">Enabled</option>
+                  <option value="Not Enabled">Not Enabled</option>
+                </select>
+                <small className="form-text">Indicate if 2-step verification is enabled on this account</small>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="uid">Account UID*</label>
+                <input
+                  type="text"
+                  id="uid"
+                  name="uid"
+                  value={uid}
+                  onChange={handleChange}
+                  className="form-control"
+                  placeholder="Enter account UID (8-15 characters)"
+                  minLength="8"
+                  maxLength="15"
+                  required
                 />
+                <small className="form-text">Unique identifier for this Free Fire account</small>
               </div>
             </div>
-            
+
             {/* Media Upload */}
             <div className="form-section">
-              <h3>Upload Media</h3>
-              
+              <h3>Upload Screenshots & Videos</h3>
+
               <div className="form-group">
                 <label>
-                  Images* 
-                  <span className="form-text"> (Upload at least one image)</span>
+                  Screenshots*
+                  <span className="form-text"> (Upload at least one screenshot)</span>
                 </label>
                 <div className="upload-container">
                   <input
@@ -406,20 +362,21 @@ const AddProductPage = () => {
                     disabled={uploading}
                   />
                   <label htmlFor="images" className="file-label">
-                    <i className="fas fa-camera"></i> Choose Images
+                    <i className="fas fa-camera"></i> Choose Screenshots
                   </label>
                   <span className="file-info">JPG, JPEG or PNG, max 5MB each</span>
                 </div>
-                
+                <small className="form-text">Include screenshots of level, inventory, skins, and other valuable items</small>
+
                 {uploading && <div className="uploading-message">Uploading...</div>}
-                
+
                 {images.length > 0 && (
                   <div className="uploaded-images">
                     {images.map((image, index) => (
                       <div key={index} className="uploaded-image">
-                        <img src={image.url} alt={`Uploaded ${index + 1}`} />
-                        <button 
-                          type="button" 
+                        <img src={image.url} alt={`Screenshot ${index + 1}`} />
+                        <button
+                          type="button"
                           className="remove-btn"
                           onClick={() => removeImage(index)}
                         >
@@ -430,10 +387,10 @@ const AddProductPage = () => {
                   </div>
                 )}
               </div>
-              
+
               <div className="form-group">
                 <label>
-                  Videos 
+                  Videos
                   <span className="form-text"> (Optional)</span>
                 </label>
                 <div className="upload-container">
@@ -451,9 +408,10 @@ const AddProductPage = () => {
                   </label>
                   <span className="file-info">MP4, MOV or AVI, max 50MB each</span>
                 </div>
-                
+                <small className="form-text">Upload gameplay videos to showcase account features</small>
+
                 {uploading && <div className="uploading-message">Uploading...</div>}
-                
+
                 {videos.length > 0 && (
                   <div className="uploaded-videos">
                     {videos.map((video, index) => (
@@ -462,8 +420,8 @@ const AddProductPage = () => {
                           <source src={video.url} type="video/mp4" />
                           Your browser does not support the video tag.
                         </video>
-                        <button 
-                          type="button" 
+                        <button
+                          type="button"
                           className="remove-btn"
                           onClick={() => removeVideo(index)}
                         >
@@ -476,18 +434,18 @@ const AddProductPage = () => {
               </div>
             </div>
           </div>
-          
+
           {/* Form Actions */}
           <div className="form-actions">
             <button type="button" className="btn btn-secondary" onClick={() => navigate('/products')}>
               Cancel
             </button>
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="btn btn-primary"
               disabled={loading || uploading}
             >
-              {loading ? 'Adding Product...' : 'List Product'}
+              {loading ? 'Listing Account...' : 'List Account'}
             </button>
           </div>
         </form>

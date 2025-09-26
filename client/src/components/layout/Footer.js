@@ -7,21 +7,21 @@ const Footer = () => {
       <div className="container">
         <div className="footer-content">
           <div className="footer-logo">
-            <h2>Mobile Market</h2>
-            <p>Buy and sell second-hand smartphones with ease</p>
+            <h2>FF-ID-STORE</h2>
+            <p>Buy and sell Free Fire accounts with ease</p>
           </div>
-          
+
           <div className="footer-links">
             <div className="footer-link-group">
               <h4>Quick Links</h4>
               <ul>
                 <li><Link to="/">Home</Link></li>
-                <li><Link to="/products">Browse Phones</Link></li>
-                <li><Link to="/products/add">Sell Phone</Link></li>
+                <li><Link to="/products">Browse Accounts</Link></li>
+                <li><Link to="/products/add">Sell Account</Link></li>
                 <li><Link to="/login">Login</Link></li>
               </ul>
             </div>
-            
+
             <div className="footer-link-group">
               <h4>Support</h4>
               <ul>
@@ -31,18 +31,18 @@ const Footer = () => {
                 <li><a href="#">Privacy Policy</a></li>
               </ul>
             </div>
-            
+
             <div className="footer-link-group">
-              <h4>Popular Brands</h4>
+              <h4>Popular Ranks</h4>
               <ul>
-                <li><Link to="/products?brand=Apple">Apple</Link></li>
-                <li><Link to="/products?brand=Samsung">Samsung</Link></li>
-                <li><Link to="/products?brand=Google">Google</Link></li>
-                <li><Link to="/products?brand=OnePlus">OnePlus</Link></li>
+                <li><Link to="/products?rank=Diamond">Diamond</Link></li>
+                <li><Link to="/products?rank=Crown">Crown</Link></li>
+                <li><Link to="/products?rank=Ace">Ace</Link></li>
+                <li><Link to="/products?rank=Conqueror">Conqueror</Link></li>
               </ul>
             </div>
           </div>
-          
+
           <div className="footer-social">
             <h4>Connect With Us</h4>
             <div className="social-icons">
@@ -53,9 +53,9 @@ const Footer = () => {
             </div>
           </div>
         </div>
-        
+
         <div className="footer-bottom">
-          <p>&copy; {new Date().getFullYear()} Mobile Market. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} FF-ID-STORE. All rights reserved.</p>
         </div>
       </div>
     </footer>

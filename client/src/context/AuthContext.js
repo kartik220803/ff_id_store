@@ -19,8 +19,8 @@ export const AuthProvider = ({ children }) => {
         try {
           // Get user data from API
           const res = await authAPI.getCurrentUser();
-          
-          setUser(res.data.data);
+
+          setUser(res.data.user);
           setIsAuthenticated(true);
           setError(null);
         } catch (err) {
@@ -38,18 +38,37 @@ export const AuthProvider = ({ children }) => {
     loadUser();
   }, [token]);
 
+  // Listen for auth errors from API interceptor
+  useEffect(() => {
+    const handleAuthError = () => {
+      console.log('Auth error event received, logging out user');
+      logout();
+    };
+
+    window.addEventListener('auth-error', handleAuthError);
+
+    return () => {
+      window.removeEventListener('auth-error', handleAuthError);
+    };
+  }, []);
+
+  // Debug authentication state
+  useEffect(() => {
+    console.log('Auth state changed:', {
+      isAuthenticated,
+      hasUser: !!user,
+      hasToken: !!token,
+      tokenFromStorage: !!localStorage.getItem('token')
+    });
+  }, [isAuthenticated, user, token]);
+
   // Register user
   const register = async (userData) => {
     try {
       const res = await authAPI.register(userData);
-      
-      // Store token and update state
-      localStorage.setItem('token', res.data.token);
-      setToken(res.data.token);
-      setUser(res.data.data);
-      setIsAuthenticated(true);
+
+      // Don't auto-login after registration, email verification required
       setError(null);
-      
       return res.data;
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed');
@@ -58,17 +77,25 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Login user
-  const login = async (userData) => {
+  const login = async (userData, isEmail = true, socialData = null) => {
     try {
-      const res = await authAPI.login(userData);
+      let res;
+
+      if (socialData) {
+        // Social login
+        res = await authAPI.socialLogin(socialData);
+      } else {
+        // Regular email/password login
+        res = await authAPI.login(userData);
+      }
 
       // Store token and update state
       localStorage.setItem('token', res.data.token);
       setToken(res.data.token);
-      setUser(res.data.data);
+      setUser(res.data.user);
       setIsAuthenticated(true);
       setError(null);
-      
+
       return res.data;
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed');
@@ -95,7 +122,8 @@ export const AuthProvider = ({ children }) => {
     try {
       const res = await authAPI.updateProfile(userData);
       setUser(res.data.data);
-      return res.data;    } catch (err) {
+      return res.data;
+    } catch (err) {
       setError(err.response?.data?.message || 'Profile update failed');
       throw err;
     }

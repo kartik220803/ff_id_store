@@ -17,34 +17,39 @@ const ProductSchema = new mongoose.Schema({
     required: [true, 'Please add a price'],
     min: [0, 'Price must be a positive number'],
   },
-  brand: {
-    type: String,
-    required: [true, 'Please specify the brand'],
+  level: {
+    type: Number,
+    required: [true, 'Please specify the account level'],
+    min: [1, 'Level must be at least 1'],
+    max: [100, 'Level cannot exceed 100'],
   },
-  model: {
-    type: String,
-    required: [true, 'Please specify the model'],
+  diamonds: {
+    type: Number,
+    required: [true, 'Please specify the number of diamonds'],
+    min: [0, 'Diamonds cannot be negative'],
   },
-  condition: {
-    type: String,
-    required: [true, 'Please specify the condition'],
-    enum: ['Brand New', 'Like New', 'Very Good', 'Good', 'Acceptable', 'For Parts'],
+  gold: {
+    type: Number,
+    required: [true, 'Please specify the amount of gold'],
+    min: [0, 'Gold cannot be negative'],
   },
-  age: {
+  loginMethod: {
     type: String,
-    required: [true, 'Please specify the age of the device'],
+    required: [true, 'Please specify the login method'],
+    enum: ['Facebook', 'Google', 'X/Twitter', 'Guest'],
   },
-  storage: {
+  twoStepVerification: {
     type: String,
-    required: [true, 'Please specify the storage capacity'],
+    required: [true, 'Please specify 2-step verification status'],
+    enum: ['Enabled', 'Not Enabled'],
   },
-  color: {
+  uid: {
     type: String,
-    required: [true, 'Please specify the color'],
-  },
-  warranty: {
-    type: String,
-    default: 'No warranty',
+    required: [true, 'Please provide the account UID'],
+    trim: true,
+    unique: true,
+    minlength: [8, 'UID must be at least 8 characters'],
+    maxlength: [15, 'UID cannot exceed 15 characters'],
   },
   images: [
     {
@@ -73,10 +78,6 @@ const ProductSchema = new mongoose.Schema({
     ref: 'User',
     required: true,
   },
-  location: {
-    type: String,
-    required: [true, 'Please add your location'],
-  },
   sold: {
     type: Boolean,
     default: false,
@@ -85,6 +86,36 @@ const ProductSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  // Social interaction fields
+  likes: [{
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
+  }],
+  views: {
+    type: Number,
+    default: 0,
+  },
+  viewedBy: [{
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
+    viewedAt: {
+      type: Date,
+      default: Date.now,
+    },
+  }],
+  commentsCount: {
+    type: Number,
+    default: 0,
+  },
   createdAt: {
     type: Date,
     default: Date.now,
@@ -92,6 +123,6 @@ const ProductSchema = new mongoose.Schema({
 });
 
 // Create index for search
-ProductSchema.index({ title: 'text', description: 'text', brand: 'text', model: 'text' });
+ProductSchema.index({ title: 'text', description: 'text', loginMethod: 'text' });
 
 module.exports = mongoose.model('Product', ProductSchema);
